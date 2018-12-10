@@ -1,7 +1,7 @@
 Cash Receipt Manager is an OCR (optical character recognition) application for storing and analyzing cash receipt documents
 
 Setup project:
-1. Clone the project and setup virtualenv
+1. Clone the project in to /receiptanalyzer directory and setup virtualenv
 2. Install the packages in requirements.txt
 
 To start the application navigate to toplevel crm directory and execute:
