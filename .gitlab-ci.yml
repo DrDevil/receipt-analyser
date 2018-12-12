@@ -1,11 +1,11 @@
 requirements:
-  - apt-get install -y pip3
+  - apt-get install -y python3-pip
   - pip3 install -r requirements.txt
 test:
   script:
     - python3 test_manage.py
 coding-standard:
   before_script:
-  - pip3 install flake8
+    - pip3 install flake8
   script:
     - flake8 *.py
