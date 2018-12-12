@@ -1,0 +1,6 @@
+test:
+  script:
+    - python3 test_manage.py
+coding-standard:
+  script:
+    - flake8 *.py
