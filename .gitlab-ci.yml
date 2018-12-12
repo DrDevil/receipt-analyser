@@ -1,6 +1,7 @@
-test:
-  before_script:
+requirements:
+  - apt-get install -y pip3
   - pip3 install -r requirements.txt
+test:
   script:
     - python3 test_manage.py
 coding-standard:
