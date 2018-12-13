@@ -6,4 +6,3 @@ requirements:
     - pip3 install flake8
   script:
       - python3 test_manage.py
-      - flake8 *.py
