@@ -6,8 +6,8 @@ from wtforms.validators import DataRequired, url, Length, Regexp, EqualTo, Email
 from receiptanalyzer.models import User
 
 
-class BookmarkForm(Form):
-    url = URLField('The URL for your bookmark:', validators=[DataRequired(), url()])
+class CashReceiptForm(Form):
+    url = URLField('The total sum for your cash receipt:', validators=[DataRequired(), url()])
     description = StringField('Add an optional description:')
 
     def validate(self):
