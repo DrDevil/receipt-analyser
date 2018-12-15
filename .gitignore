@@ -1,2 +1,5 @@
 receipts_venv/
 *.db
+*.pyc
+__pycache__/
+receiptanalyzer/__pycache__/

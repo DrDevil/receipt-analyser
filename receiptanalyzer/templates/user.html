@@ -1,22 +1,22 @@
 {% extends "base.html" %}
 
 {% block title %}
-Receipt Analyzer -- Bookmarks for user {{ user.username }}
+Receipt Analyzer -- CashReceipts for user {{ user.username }}
 {%  endblock %}
 
 {% block content %}
     <article>
         <header>
-             <h1>Bookmarks for {{ user.username }}</h1>
+             <h1>CashReceipts for {{ user.username }}</h1>
 
             <ul>
-                {% for bm in user.bookmarks %}
+                {% for cr in user.cashreceipts %}
                     <li>
-                        <a href="{{ bm.url }}">{{ bm.description }}</a> <br>
-                        <span class="timestamp">Added at {{ bm.date }}</span>
+                        <a href="{{ cr.url }}">{{ cr.description }}</a> <br>
+                        <span class="timestamp">Added at {{ cr.date }}</span>
                     </li>
                 {% else %}
-                    <li>This user has not added any bookmarks yet.</li>
+                    <li>This user has not added any cashreceipts yet.</li>
                 {% endfor %}
             </ul>
         </header>
