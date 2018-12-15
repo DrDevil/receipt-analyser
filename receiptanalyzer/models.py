@@ -19,6 +19,7 @@ class CashReceipt(db.Model):
     date = db.Column(db.DateTime, default=datetime.utcnow)
     description = db.Column(db.String(300))
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    receipt_products = db.relationship('ReceiptProduct', backref='cashreceipt')
 
     @staticmethod
     def newest(num):
@@ -39,7 +40,7 @@ class ReceiptProduct(db.Model):
     quantity = db.Column(db.Float, nullable=False)
     total_price = db.Column(db.Float, nullable=False)
     receipt_id = db.Column(db.Integer,
-                            db.ForeignKey(cashreceipt.id),
+                            db.ForeignKey('cashreceipt.id'),
                             nullable=False)
 
 class User(db.Model, UserMixin):
