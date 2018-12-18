@@ -1,10 +1,14 @@
 import os
+import sys
 
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 
 basedir = os.path.abspath(os.path.dirname(__file__))
+
+#to help with tests folder
+sys.path.append(os.path.abspath('../tests'))
 
 
 # Configure database

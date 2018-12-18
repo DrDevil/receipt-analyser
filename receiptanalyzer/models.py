@@ -24,14 +24,15 @@ class ReceiptProduct(db.Model):
 
     @staticmethod
     def newest(num):
+        ''' Return the last @num entries, sorted.'''
         return ReceiptProduct.query.order_by(desc(ReceiptProduct.id)).limit(num)
 
     def __repr__(self):
         return "<ReceiptProduct '{}': '{}'>".format(self.pr_name, self.total_price)
 
+
 class CashReceipt(db.Model):
-    ''' A class to describe a basic CashReceipt.
-    It should consist of :
+    ''' A class to describe a basic CashReceipt. It should consist of :
     - date
     - total sum for the receipt
     - description - something to describe that entry
@@ -47,6 +48,7 @@ class CashReceipt(db.Model):
 
     @staticmethod
     def newest(num):
+        ''' Return the last @num entries, sorted.'''
         return CashReceipt.query.order_by(desc(CashReceipt.date)).limit(num)
 
     def __repr__(self):
@@ -54,6 +56,12 @@ class CashReceipt(db.Model):
 
 
 class User(db.Model, UserMixin):
+    ''' A class to describe the user. It should consist of:
+    - username
+    - email
+    - password_hash
+    - cashreceipts - all the receipts of that user
+     '''
     id = db.Column(db.Integer, primary_key=True)
     username= db.Column(db.String(80), unique=True)
     email = db.Column(db.String(120), unique=True)
@@ -62,17 +70,21 @@ class User(db.Model, UserMixin):
 
     @property
     def password(self):
+        ''' Your password is safe! '''
         raise AttributeError('password: write only field')
 
     @password.setter
     def password(self, password):
+        ''' Set a new password'''
         self.password_hash = generate_password_hash(password)
 
     def check_password(self, password):
+        ''' Check if passwords match'''
         return check_password_hash(self.password_hash, password)
 
     @staticmethod
     def get_by_username(username):
+        ''' Get a user'''
         return User.query.filter_by(username=username).first()
 
     def __repr__(self):

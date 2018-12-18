@@ -1,20 +1,16 @@
 from flask_wtf import Form
 from wtforms.fields import StringField, PasswordField, BooleanField, SubmitField
 from wtforms.fields.html5 import URLField
-from wtforms.validators import DataRequired, url, Length, Regexp, EqualTo, Email, ValidationError
+from wtforms.validators import DataRequired, Length, Regexp, EqualTo, Email, ValidationError
 
 from receiptanalyzer.models import User
 
 
 class CashReceiptForm(Form):
-    url = URLField('The total sum for your cash receipt:', validators=[DataRequired(), url()])
+    url = URLField('The total sum for your cash receipt:', validators=[DataRequired()])
     description = StringField('Add an optional description:')
 
     def validate(self):
-        if not self.url.data.startswith("http://") or \
-                self.url.data.startswith("https://"):
-            self.url.data = "http://" + self.url.data
-
         if not Form.validate(self):
             return False
 
