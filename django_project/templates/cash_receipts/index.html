@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+
+{% block title %}Recent Receipts{% endblock %}
+
+{% block content %}
+<h1>Recent Cash Receipts</h1>
+
+{% if receipts %}
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Date</th>
+                <th>Total</th>
+                <th>Description</th>
+                <th>Owner</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for receipt in receipts %}
+            <tr>
+                <td>#{{ receipt.id }}</td>
+                <td>{{ receipt.date }}</td>
+                <td>${{ receipt.total_sum }}</td>
+                <td>{{ receipt.description|default:"-" }}</td>
+                <td><a href="{% url 'user_profile' receipt.owner.username %}">{{ receipt.owner.username }}</a></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p>No receipts yet. <a href="{% url 'add_receipt' %}">Add the first one!</a></p>
+{% endif %}
+{% endblock %}

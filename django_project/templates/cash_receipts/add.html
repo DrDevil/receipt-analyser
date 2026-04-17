@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block title %}Add Receipt{% endblock %}
+
+{% block content %}
+<h1>Add New Receipt</h1>
+
+<form method="post">
+    {% csrf_token %}
+    
+    <div class="form-group">
+        <label for="id_total_sum">Total Sum:</label>
+        {{ form.total_sum }}
+        {% if form.total_sum.errors %}
+            <ul class="errors">
+            {% for error in form.total_sum.errors %}
+                <li>{{ error }}</li>
+            {% endfor %}
+            </ul>
+        {% endif %}
+    </div>
+
+    <div class="form-group">
+        <label for="id_description">Description:</label>
+        {{ form.description }}
+        {% if form.description.errors %}
+            <ul class="errors">
+            {% for error in form.description.errors %}
+                <li>{{ error }}</li>
+            {% endfor %}
+            </ul>
+        {% endif %}
+    </div>
+
+    <fieldset>
+        <legend>Line Item (optional)</legend>
+        <div class="form-group">
+            <label for="product_name">Product Name:</label>
+            <input type="text" name="product_name" id="product_name">
+        </div>
+        <div class="form-group">
+            <label for="quantity">Quantity:</label>
+            <input type="number" name="quantity" id="quantity" step="0.01">
+        </div>
+        <div class="form-group">
+            <label for="unit_price">Unit Price:</label>
+            <input type="number" name="unit_price" id="unit_price" step="0.01">
+        </div>
+    </fieldset>
+
+    <button type="submit">Save Receipt</button>
+</form>
+{% endblock %}
