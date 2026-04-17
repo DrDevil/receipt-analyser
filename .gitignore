@@ -3,3 +3,5 @@ receipts_venv/
 *.pyc
 __pycache__/
 receiptanalyzer/__pycache__/
+.vscode/
+CLAUDE.md
