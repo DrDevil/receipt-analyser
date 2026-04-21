@@ -160,9 +160,17 @@ class TestAddReceiptView:
         data = {
             'total_sum': '50.00',
             'description': 'Shopping',
-            'product_name': 'Milk',
-            'quantity': '2.00',
-            'unit_price': '25.00'
+            'items-TOTAL_FORMS': '1',
+            'items-INITIAL_FORMS': '0',
+            'items-MIN_NUM_FORMS': '0',
+            'items-MAX_NUM_FORMS': '1000',
+            'items-0-product_name': 'Milk',
+            'items-0-quantity': '2.00',
+            'items-0-unit_price': '25.00',
+            'items-0-vat_amount': '5.00',
+            'items-0-id': '',
+            'items-0-receipt': '',
+            'items-0-DELETE': ''
         }
         response = client.post(reverse('add_receipt'), data)
         
@@ -172,6 +180,7 @@ class TestAddReceiptView:
         assert item.product_name == 'Milk'
         assert item.quantity == Decimal('2.00')
         assert item.unit_price == Decimal('25.00')
+        assert item.vat_amount == Decimal('5.00')
 
     def test_add_receipt_redirects_to_profile(self, client, user):
         """Test that successful add redirects to user profile."""

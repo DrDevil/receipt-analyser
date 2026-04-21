@@ -51,12 +51,14 @@ class ReceiptItem(models.Model):
         quantity (DecimalField): Number of units purchased.
         unit_price (DecimalField): Price per unit.
         total_price (DecimalField): Total price for this line (quantity * unit_price).
+        vat_amount (DecimalField): Value Added Tax amount for this line item.
     """
     receipt = models.ForeignKey(Receipt, on_delete=models.CASCADE, related_name='items')
     product_name = models.CharField(max_length=255)
     quantity = models.DecimalField(max_digits=8, decimal_places=2)
     unit_price = models.DecimalField(max_digits=10, decimal_places=2)
     total_price = models.DecimalField(max_digits=10, decimal_places=2)
+    vat_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
     class Meta:
         ordering = ['id']

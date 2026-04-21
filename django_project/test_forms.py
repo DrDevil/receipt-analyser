@@ -92,7 +92,8 @@ class TestReceiptItemForm:
         form = ReceiptItemForm(data={
             'product_name': 'Apple',
             'quantity': '5.00',
-            'unit_price': '1.50'
+            'unit_price': '1.50',
+            'vat_amount': '0.75'
         })
         assert form.is_valid()
 
@@ -101,7 +102,8 @@ class TestReceiptItemForm:
         form = ReceiptItemForm(data={
             'product_name': '',
             'quantity': '5.00',
-            'unit_price': '1.50'
+            'unit_price': '1.50',
+            'vat_amount': '0.00'
         })
         assert not form.is_valid()
 
@@ -110,7 +112,8 @@ class TestReceiptItemForm:
         form = ReceiptItemForm(data={
             'product_name': 'Apple',
             'quantity': '',
-            'unit_price': '1.50'
+            'unit_price': '1.50',
+            'vat_amount': '0.00'
         })
         assert not form.is_valid()
 
@@ -119,16 +122,28 @@ class TestReceiptItemForm:
         form = ReceiptItemForm(data={
             'product_name': 'Apple',
             'quantity': '5.00',
-            'unit_price': ''
+            'unit_price': '',
+            'vat_amount': '0.00'
         })
         assert not form.is_valid()
+
+    def test_receipt_item_form_vat_optional(self):
+        """Test that vat_amount is optional."""
+        form = ReceiptItemForm(data={
+            'product_name': 'Apple',
+            'quantity': '5.00',
+            'unit_price': '1.50',
+            'vat_amount': ''
+        })
+        assert form.is_valid()
 
     def test_receipt_item_form_decimal_validation(self):
         """Test decimal field validation."""
         form = ReceiptItemForm(data={
             'product_name': 'Apple',
             'quantity': 'invalid',
-            'unit_price': '1.50'
+            'unit_price': '1.50',
+            'vat_amount': '0.00'
         })
         assert not form.is_valid()
 
@@ -137,7 +152,8 @@ class TestReceiptItemForm:
         form = ReceiptItemForm(data={
             'product_name': 'Banana',
             'quantity': '3.00',
-            'unit_price': '0.99'
+            'unit_price': '0.99',
+            'vat_amount': '0.30'
         })
         assert form.is_valid()
         item = form.save(commit=False)
@@ -146,6 +162,7 @@ class TestReceiptItemForm:
         assert item.product_name == 'Banana'
         assert item.quantity == Decimal('3.00')
         assert item.unit_price == Decimal('0.99')
+        assert item.vat_amount == Decimal('0.30')
 
     def test_receipt_item_form_long_product_name(self):
         """Test form with maximum length product name."""
@@ -153,7 +170,8 @@ class TestReceiptItemForm:
         form = ReceiptItemForm(data={
             'product_name': long_name,
             'quantity': '1.00',
-            'unit_price': '10.00'
+            'unit_price': '10.00',
+            'vat_amount': '0.00'
         })
         assert form.is_valid()
 
@@ -163,7 +181,8 @@ class TestReceiptItemForm:
         form = ReceiptItemForm(data={
             'product_name': long_name,
             'quantity': '1.00',
-            'unit_price': '10.00'
+            'unit_price': '10.00',
+            'vat_amount': '0.00'
         })
         assert not form.is_valid()
 

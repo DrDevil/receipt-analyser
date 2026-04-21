@@ -12,7 +12,7 @@ from django.contrib.auth.models import User
 from django.contrib import messages
 from django.core.paginator import Paginator
 from .models import Receipt, ReceiptItem
-from .forms import ReceiptForm, SignupForm
+from .forms import ReceiptForm, ReceiptItemFormSet, SignupForm
 
 
 def index(request):
@@ -65,48 +65,45 @@ def user_profile(request, username):
 @login_required
 def add_receipt(request):
     """
-    Handle receipt creation.
+    Handle receipt creation with multiple line items.
 
-    Allows authenticated users to create a new receipt with an optional
-    line item (product). The receipt is automatically associated with
-    the logged-in user.
+    Allows authenticated users to create a new receipt with multiple line items.
+    The receipt is automatically associated with the logged-in user.
 
     Args:
         request (HttpRequest): The HTTP request object.
 
     Returns:
         HttpResponse: On GET, renders add.html form. On POST with valid data,
-                      creates receipt and redirects to user profile.
+                      creates receipt and formset items, then redirects to user profile.
 
     Raises:
         PermissionDenied: If user is not authenticated (handled by @login_required).
     """
     if request.method == 'POST':
         form = ReceiptForm(request.POST)
+        formset = ReceiptItemFormSet(request.POST, instance=None)
+        
         if form.is_valid():
             receipt = form.save(commit=False)
             receipt.owner = request.user
             receipt.save()
-
-            # Handle optional line item
-            product_name = request.POST.get('product_name')
-            quantity = request.POST.get('quantity')
-            unit_price = request.POST.get('unit_price')
-
-            if product_name and quantity and unit_price:
-                ReceiptItem.objects.create(
-                    receipt=receipt,
-                    product_name=product_name,
-                    quantity=Decimal(quantity),
-                    unit_price=Decimal(unit_price)
-                )
-
-            messages.success(request, f"Receipt #{receipt.id} created successfully!")
-            return redirect('user_profile', username=request.user.username)
+            
+            formset.instance = receipt
+            if formset.is_valid():
+                formset.save()
+                messages.success(request, f"Receipt #{receipt.id} created successfully!")
+                return redirect('user_profile', username=request.user.username)
+            else:
+                receipt.delete()
     else:
         form = ReceiptForm()
+        formset = ReceiptItemFormSet(instance=None)
 
-    return render(request, 'cash_receipts/add.html', {'form': form})
+    return render(request, 'cash_receipts/add.html', {
+        'form': form,
+        'formset': formset
+    })
 
 
 def signup(request):

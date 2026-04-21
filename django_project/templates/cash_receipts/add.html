@@ -33,19 +33,35 @@
     </div>
 
     <fieldset>
-        <legend>Line Item (optional)</legend>
-        <div class="form-group">
-            <label for="product_name">Product Name:</label>
-            <input type="text" name="product_name" id="product_name">
-        </div>
-        <div class="form-group">
-            <label for="quantity">Quantity:</label>
-            <input type="number" name="quantity" id="quantity" step="0.01">
-        </div>
-        <div class="form-group">
-            <label for="unit_price">Unit Price:</label>
-            <input type="number" name="unit_price" id="unit_price" step="0.01">
-        </div>
+        <legend>Line Items</legend>
+        {{ formset.management_form }}
+        <table id="items-table">
+            <thead>
+                <tr>
+                    <th>Product Name</th>
+                    <th>Quantity</th>
+                    <th>Unit Price</th>
+                    <th>VAT Amount</th>
+                    <th>Delete</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for form in formset %}
+                    {% if not form.instance.pk or not form.DELETE.value %}
+                    <tr class="item-row">
+                        <td>{{ form.product_name }}</td>
+                        <td>{{ form.quantity }}</td>
+                        <td>{{ form.unit_price }}</td>
+                        <td>{{ form.vat_amount }}</td>
+                        <td>{{ form.DELETE }}</td>
+                    </tr>
+                    {% if form.non_field_errors %}
+                        <tr><td colspan="5"><ul class="errors">{{ form.non_field_errors }}</ul></td></tr>
+                    {% endif %}
+                    {% endif %}
+                {% endfor %}
+            </tbody>
+        </table>
     </fieldset>
 
     <button type="submit">Save Receipt</button>
