@@ -1,27 +1,48 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Cash Receipts{% endblock %}</title>
-    <link rel="stylesheet" href="{% load static %}{% static 'css/normalize.css' %}">
-    <link rel="stylesheet" href="{% load static %}{% static 'css/main.css' %}">
+    <link rel="stylesheet" href="{% static 'css/normalize.css' %}">
+    <link rel="stylesheet" href="{% static 'css/main.css' %}">
+    <!-- jQuery and jQuery UI -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js" integrity="sha256-13CH9g9lQ1E1NzYkP6I3hL3P/1bNLgDK4q3m0Zf3xk=" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+    <!-- Theme Toggle Script -->
+    <script src="{% static 'js/theme-toggle.js' %}"></script>
 </head>
 <body>
     <header>
         <nav>
-            <a href="{% url 'index' %}">Home</a>
-            {% if user.is_authenticated %}
-                <a href="{% url 'add_receipt' %}">Add Receipt</a>
-                <a href="{% url 'user_profile' user.username %}">My Receipts</a>
-                <form action="{% url 'logout' %}" method="post" style="display:inline;">
-                    {% csrf_token %}
-                    <button type="submit">Logout</button>
-                </form>
-            {% else %}
-                <a href="{% url 'login' %}">Login</a>
-                <a href="{% url 'signup' %}">Sign Up</a>
-            {% endif %}
+            <!-- Left: Logo/Home -->
+            <div class="nav-left">
+                <a href="{% url 'index' %}" class="nav-logo">Cash Receipts</a>
+            </div>
+            
+            <!-- Center: Main Navigation -->
+            <div class="nav-center">
+                {% if user.is_authenticated %}
+                    <a href="{% url 'add_receipt' %}">Add Receipt</a>
+                    <a href="{% url 'user_profile' user.username %}">My Receipts</a>
+                {% endif %}
+            </div>
+            
+            <!-- Right: Theme Toggle + Auth -->
+            <div class="nav-right">
+                {% if user.is_authenticated %}
+                    <span class="nav-username">{{ user.username }}</span>
+                    <form action="{% url 'logout' %}" method="post" class="nav-auth">
+                        {% csrf_token %}
+                        <button type="submit" class="nav-logout-btn">Logout</button>
+                    </form>
+                {% else %}
+                    <a href="{% url 'login' %}">Login</a>
+                    <a href="{% url 'signup' %}">Sign Up</a>
+                {% endif %}
+            </div>
         </nav>
     </header>
 
