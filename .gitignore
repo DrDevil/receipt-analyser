@@ -5,4 +5,4 @@ __pycache__/
 receiptanalyzer/__pycache__/
 .vscode/
 CLAUDE.md
-db.sqlite3
+django_project/db.sqlite3
