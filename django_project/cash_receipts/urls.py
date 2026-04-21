@@ -1,3 +1,8 @@
+"""
+URL configuration for the cash_receipts application.
+
+Routes URLs to views for receipt management, user profiles, and authentication.
+"""
 from django.urls import path
 from django.contrib.auth import views as auth_views
 from . import views
