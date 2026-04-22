@@ -1,0 +1,16 @@
+[run]
+source = cash_receipts
+omit =
+    */migrations/*
+    */settings*
+    */wsgi.py
+    */asgi.py
+    manage.py
+
+[report]
+show_missing = true
+precision = 2
+
+[html]
+directory = htmlcov
+title = Cash Receipts Coverage Report
