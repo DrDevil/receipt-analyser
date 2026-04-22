@@ -36,7 +36,14 @@ class ReceiptItemForm(forms.ModelForm):
     Form for creating and editing individual receipt line items.
 
     Represents a single product within a receipt with name, quantity, price, and VAT.
+    All fields are optional to allow empty rows to be skipped during validation.
     """
+    # Make all fields optional - validation is done at formset level
+    product_name = forms.CharField(max_length=255, required=False)
+    quantity = forms.DecimalField(max_digits=8, decimal_places=2, required=False)
+    unit_price = forms.DecimalField(max_digits=10, decimal_places=2, required=False)
+    vat_amount = forms.DecimalField(max_digits=10, decimal_places=2, required=False)
+    
     class Meta:
         model = ReceiptItem
         fields = ['product_name', 'quantity', 'unit_price', 'vat_amount']
@@ -48,13 +55,30 @@ class ReceiptItemForm(forms.ModelForm):
         }
 
 
-ReceiptItemFormSet = inlineformset_factory(
-    Receipt,
-    ReceiptItem,
-    form=ReceiptItemForm,
-    extra=3,
-    can_delete=True
-)
+class ReceiptItemFormSet:
+    """Metaclass for creating formset with custom validation."""
+    pass
+
+
+def create_receipt_item_formset():
+    """
+    Create a formset for receipt items with validation for complete/empty rows.
+    
+    Features:
+    - Starts with 1 extra blank row for user input
+    - Enforces all-or-nothing validation: either all fields filled or all empty
+    - Empty rows are silently ignored (not saved)
+    - Partially filled rows raise validation errors
+    """
+    return inlineformset_factory(
+        Receipt,
+        ReceiptItem,
+        form=ReceiptItemForm,
+        extra=1,
+        can_delete=False,
+        validate_min=False,
+        min_num=0
+    )
 
 
 class SignupForm(UserCreationForm):

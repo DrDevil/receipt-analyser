@@ -140,15 +140,19 @@ class TestAddReceiptView:
         assert 'cash_receipts/add.html' in [t.name for t in response.templates]
 
     def test_add_receipt_post_creates_receipt(self, client, user):
-        """Test that valid POST creates a receipt."""
+        """Test that valid POST creates a receipt without items."""
         client.force_login(user)
         data = {
             'total_sum': '99.99',
             'description': 'Grocery store',
-            'items-TOTAL_FORMS': '0',
+            'items-TOTAL_FORMS': '1',
             'items-INITIAL_FORMS': '0',
             'items-MIN_NUM_FORMS': '0',
             'items-MAX_NUM_FORMS': '1000',
+            'items-0-product_name': '',
+            'items-0-quantity': '',
+            'items-0-unit_price': '',
+            'items-0-vat_amount': '',
         }
         response = client.post(reverse('add_receipt'), data)
         
@@ -157,9 +161,10 @@ class TestAddReceiptView:
         assert receipt is not None
         assert receipt.owner == user
         assert receipt.total_sum == Decimal('99.99')
+        assert receipt.items.count() == 0  # Empty item should not be saved
 
-    def test_add_receipt_with_item(self, client, user):
-        """Test that add receipt can create receipt with item."""
+    def test_add_receipt_with_single_item(self, client, user):
+        """Test that add receipt can create receipt with single complete item."""
         client.force_login(user)
         data = {
             'total_sum': '50.00',
@@ -172,9 +177,6 @@ class TestAddReceiptView:
             'items-0-quantity': '2.00',
             'items-0-unit_price': '25.00',
             'items-0-vat_amount': '5.00',
-            'items-0-id': '',
-            'items-0-receipt': '',
-            'items-0-DELETE': ''
         }
         response = client.post(reverse('add_receipt'), data)
         
@@ -186,6 +188,67 @@ class TestAddReceiptView:
         assert item.quantity == Decimal('2.00')
         assert item.unit_price == Decimal('25.00')
         assert item.vat_amount == Decimal('5.00')
+
+    def test_add_receipt_with_multiple_items(self, client, user):
+        """Test that add receipt can create receipt with multiple complete items."""
+        client.force_login(user)
+        data = {
+            'total_sum': '150.00',
+            'description': 'Grocery shopping',
+            'items-TOTAL_FORMS': '3',
+            'items-INITIAL_FORMS': '0',
+            'items-MIN_NUM_FORMS': '0',
+            'items-MAX_NUM_FORMS': '1000',
+            # First item - complete
+            'items-0-product_name': 'Milk',
+            'items-0-quantity': '2.00',
+            'items-0-unit_price': '3.50',
+            'items-0-vat_amount': '1.40',
+            # Second item - complete
+            'items-1-product_name': 'Bread',
+            'items-1-quantity': '1.00',
+            'items-1-unit_price': '2.50',
+            'items-1-vat_amount': '0.50',
+            # Third item - empty (should be skipped)
+            'items-2-product_name': '',
+            'items-2-quantity': '',
+            'items-2-unit_price': '',
+            'items-2-vat_amount': '',
+        }
+        response = client.post(reverse('add_receipt'), data)
+        
+        assert response.status_code == 302
+        receipt = Receipt.objects.first()
+        assert receipt.items.count() == 2  # Only complete items saved
+        
+        items = list(receipt.items.all())
+        assert items[0].product_name == 'Milk'
+        assert items[1].product_name == 'Bread'
+
+    def test_add_receipt_rejects_partial_data(self, client, user):
+        """Test that form rejects partially filled items."""
+        client.force_login(user)
+        data = {
+            'total_sum': '50.00',
+            'description': 'Test',
+            'items-TOTAL_FORMS': '1',
+            'items-INITIAL_FORMS': '0',
+            'items-MIN_NUM_FORMS': '0',
+            'items-MAX_NUM_FORMS': '1000',
+            'items-0-product_name': 'Milk',
+            'items-0-quantity': '2.00',
+            'items-0-unit_price': '',  # Missing price
+            'items-0-vat_amount': '',
+        }
+        response = client.post(reverse('add_receipt'), data)
+        
+        # Should return 200 with form re-displayed (not 302 redirect)
+        assert response.status_code == 200
+        # Receipt should NOT be created
+        assert Receipt.objects.count() == 0
+        # Should have error message about partial data
+        messages_list = list(messages.get_messages(response.wsgi_request))
+        assert any('All item fields must be filled' in str(m) for m in messages_list)
 
     def test_add_receipt_redirects_to_profile(self, client, user):
         """Test that successful add redirects to user profile."""

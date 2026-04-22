@@ -11,8 +11,9 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib import messages
 from django.core.paginator import Paginator
+from django.core.exceptions import ValidationError
 from .models import Receipt, ReceiptItem
-from .forms import ReceiptForm, ReceiptItemFormSet, SignupForm
+from .forms import ReceiptForm, create_receipt_item_formset, SignupForm
 
 
 def index(request):
@@ -68,42 +69,124 @@ def add_receipt(request):
     Handle receipt creation with multiple line items.
 
     Allows authenticated users to create a new receipt with multiple line items.
-    The receipt is automatically associated with the logged-in user.
+    Users start with one blank item row and can add more as needed. Only complete
+    items (all fields filled) are saved. Partially filled items raise a validation error.
+
+    Behavior:
+    - Empty items are ignored (not saved)
+    - Partially filled items raise a validation error (user must either complete or clear all fields)
+    - At least the receipt itself must be valid to be created
+    - Receipt is automatically associated with the logged-in user
 
     Args:
         request (HttpRequest): The HTTP request object.
 
     Returns:
         HttpResponse: On GET, renders add.html form. On POST with valid data,
-                      creates receipt and formset items, then redirects to user profile.
+                      creates receipt and items, then redirects to user profile.
 
     Raises:
         PermissionDenied: If user is not authenticated (handled by @login_required).
     """
+    FormSet = create_receipt_item_formset()
+    
     if request.method == 'POST':
         form = ReceiptForm(request.POST)
-        formset = ReceiptItemFormSet(request.POST, instance=None)
+        formset = FormSet(request.POST, instance=None)
         
-        if form.is_valid():
+        if form.is_valid() and formset.is_valid():
             receipt = form.save(commit=False)
             receipt.owner = request.user
             receipt.save()
             
-            formset.instance = receipt
-            if formset.is_valid():
-                formset.save()
+            # Validate and process formset
+            try:
+                cleaned_forms = _validate_and_clean_formset(formset)
+                
+                # Save only complete items
+                for item_data in cleaned_forms:
+                    ReceiptItem.objects.create(receipt=receipt, **item_data)
+                
                 messages.success(request, f"Receipt #{receipt.id} created successfully!")
                 return redirect('user_profile', username=request.user.username)
-            else:
+            
+            except ValidationError as e:
                 receipt.delete()
+                messages.error(request, str(e))
+                # Formset will be re-displayed with the error message
+        
+        # If form or formset invalid, formset will be re-displayed
     else:
         form = ReceiptForm()
-        formset = ReceiptItemFormSet(instance=None)
+        formset = FormSet(instance=None)
 
     return render(request, 'cash_receipts/add.html', {
         'form': form,
         'formset': formset
     })
+
+
+def _validate_and_clean_formset(formset):
+    """
+    Validate formset ensuring no partial data is saved.
+    
+    Rules:
+    - Empty rows (all fields blank) are ignored
+    - Partially filled rows raise ValidationError
+    - Returns list of complete cleaned item data dicts
+    
+    Args:
+        formset: The ReceiptItemFormSet instance (must have been validated)
+        
+    Returns:
+        list: List of dictionaries with cleaned item data
+        
+    Raises:
+        ValidationError: If any row has partial data
+    """
+    cleaned_items = []
+    
+    for i, form in enumerate(formset.forms):
+        # Skip deleted items
+        if form.cleaned_data.get('DELETE'):
+            continue
+        
+        # Get all field values
+        product_name = (form.cleaned_data.get('product_name') or '').strip()
+        quantity = form.cleaned_data.get('quantity')
+        unit_price = form.cleaned_data.get('unit_price')
+        vat_amount = form.cleaned_data.get('vat_amount') or Decimal('0')
+        
+        # Count how many fields have meaningful values
+        filled_fields = sum([
+            bool(product_name),
+            quantity is not None and quantity > 0,
+            unit_price is not None and unit_price > 0
+        ])
+        
+        # If all fields are empty, skip this row (valid - user left it blank)
+        if filled_fields == 0:
+            continue
+        
+        # If some but not all required fields are filled, raise error
+        if filled_fields < 3:
+            raise ValidationError(
+                "All item fields must be filled: product name, quantity, and unit price "
+                "are required. Leave a row completely blank to skip it."
+            )
+        
+        # Calculate total price
+        total_price = quantity * unit_price
+        
+        cleaned_items.append({
+            'product_name': product_name,
+            'quantity': quantity,
+            'unit_price': unit_price,
+            'total_price': total_price,
+            'vat_amount': vat_amount
+        })
+    
+    return cleaned_items
 
 
 def signup(request):
