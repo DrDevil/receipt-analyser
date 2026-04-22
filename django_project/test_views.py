@@ -2,6 +2,7 @@
 import pytest
 from decimal import Decimal
 from django.urls import reverse
+from django.contrib import messages
 from django.contrib.auth.models import User
 from cash_receipts.models import Receipt, ReceiptItem
 import factory
@@ -347,6 +348,102 @@ class TestSignupView:
         
         assert response.status_code == 302
         assert reverse('index') in response.url
+
+
+@pytest.mark.django_db
+class TestAddReceiptFormsetEdgeCases:
+    """Integration tests for formset validation edge cases in add_receipt view."""
+
+    def _make_data(self, overrides=None):
+        data = {
+            'total_sum': '50.00',
+            'description': 'Test',
+            'items-TOTAL_FORMS': '1',
+            'items-INITIAL_FORMS': '0',
+            'items-MIN_NUM_FORMS': '0',
+            'items-MAX_NUM_FORMS': '1000',
+            'items-0-product_name': '',
+            'items-0-quantity': '',
+            'items-0-unit_price': '',
+            'items-0-vat_amount': '',
+        }
+        if overrides:
+            data.update(overrides)
+        return data
+
+    def test_zero_quantity_rejected(self, client, user):
+        """An item with quantity=0 is treated as partial (counts as unfilled) and rejected."""
+        client.force_login(user)
+        data = self._make_data({
+            'items-0-product_name': 'Milk',
+            'items-0-quantity': '0',
+            'items-0-unit_price': '3.50',
+        })
+        response = client.post(reverse('add_receipt'), data)
+        assert response.status_code == 200
+        assert Receipt.objects.count() == 0
+        msgs = list(messages.get_messages(response.wsgi_request))
+        assert any('All item fields must be filled' in str(m) for m in msgs)
+
+    def test_zero_unit_price_rejected(self, client, user):
+        """An item with unit_price=0 is treated as partial (counts as unfilled) and rejected."""
+        client.force_login(user)
+        data = self._make_data({
+            'items-0-product_name': 'Milk',
+            'items-0-quantity': '2.00',
+            'items-0-unit_price': '0',
+        })
+        response = client.post(reverse('add_receipt'), data)
+        assert response.status_code == 200
+        assert Receipt.objects.count() == 0
+        msgs = list(messages.get_messages(response.wsgi_request))
+        assert any('All item fields must be filled' in str(m) for m in msgs)
+
+    def test_product_name_only_rejected(self, client, user):
+        """An item with only product name and no quantity or price is rejected."""
+        client.force_login(user)
+        data = self._make_data({'items-0-product_name': 'Milk'})
+        response = client.post(reverse('add_receipt'), data)
+        assert response.status_code == 200
+        assert Receipt.objects.count() == 0
+
+    def test_receipt_rolled_back_on_partial_item(self, client, user):
+        """Receipt saved mid-request is deleted when a later item row is partial."""
+        client.force_login(user)
+        data = {
+            'total_sum': '75.00',
+            'description': 'Rollback test',
+            'items-TOTAL_FORMS': '2',
+            'items-INITIAL_FORMS': '0',
+            'items-MIN_NUM_FORMS': '0',
+            'items-MAX_NUM_FORMS': '1000',
+            'items-0-product_name': 'Milk',
+            'items-0-quantity': '2.00',
+            'items-0-unit_price': '3.50',
+            'items-0-vat_amount': '',
+            'items-1-product_name': 'Bread',
+            'items-1-quantity': '1.00',
+            'items-1-unit_price': '',  # partial — triggers ValidationError + receipt.delete()
+            'items-1-vat_amount': '',
+        }
+        response = client.post(reverse('add_receipt'), data)
+        assert response.status_code == 200
+        assert Receipt.objects.count() == 0
+        assert ReceiptItem.objects.count() == 0
+
+    def test_complete_item_without_vat_defaults_to_zero(self, client, user):
+        """A fully complete item row with no VAT is saved with vat_amount=0."""
+        client.force_login(user)
+        data = self._make_data({
+            'items-0-product_name': 'Milk',
+            'items-0-quantity': '2.00',
+            'items-0-unit_price': '3.50',
+        })
+        response = client.post(reverse('add_receipt'), data)
+        assert response.status_code == 302
+        item = ReceiptItem.objects.first()
+        assert item is not None
+        assert item.vat_amount == Decimal('0')
 
 
 @pytest.fixture

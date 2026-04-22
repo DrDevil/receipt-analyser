@@ -1,5 +1,60 @@
 # Receipt Analyzer ###
 
+# Quick Start Guide - Receipt Analyzer
+
+## Installation & Setup
+
+```bash
+# Install dependencies
+pip install -r requirements.txt
+
+# Apply migrations
+cd django_project
+python manage.py migrate
+
+# Create superuser for admin
+python manage.py createsuperuser
+
+# Run tests
+pytest -v
+
+# Start development server
+python manage.py runserver
+```
+
+## Key URLs
+
+- Homepage: `http://localhost:8000/`
+- Admin: `http://localhost:8000/admin/`
+- Signup: `http://localhost:8000/signup/`
+- Login: `http://localhost:8000/login/`
+- User Profile: `http://localhost:8000/users/<username>/`
+- Add Receipt: `http://localhost:8000/receipts/add/`
+
+## Testing Commands
+
+```bash
+# Run all tests
+pytest -v
+
+# Run specific test file
+pytest test_models.py -v
+
+# Run specific test class
+pytest test_models.py::TestReceipt -v
+
+# Run specific test
+pytest test_models.py::TestReceipt::test_receipt_creation -v
+
+# Run with coverage
+pytest --cov=cash_receipts
+
+# Run only fast tests
+pytest -m "not slow"
+```
+
+# Requirements
+
 ## Requirements for v1.0 (Basic functionality):
 
 ### UI:
@@ -37,4 +92,3 @@
 8. User should see summary of the purchase from the cash receit after succesfull upload
 
 ### Backend:
-

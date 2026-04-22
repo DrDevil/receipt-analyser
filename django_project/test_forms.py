@@ -97,35 +97,35 @@ class TestReceiptItemForm:
         })
         assert form.is_valid()
 
-    def test_receipt_item_form_requires_product_name(self):
-        """Test that product_name is required."""
+    def test_receipt_item_form_product_name_optional(self):
+        """Test that product_name is optional at form level (formset handles all-or-nothing validation)."""
         form = ReceiptItemForm(data={
             'product_name': '',
             'quantity': '5.00',
             'unit_price': '1.50',
             'vat_amount': '0.00'
         })
-        assert not form.is_valid()
+        assert form.is_valid()
 
-    def test_receipt_item_form_requires_quantity(self):
-        """Test that quantity is required."""
+    def test_receipt_item_form_quantity_optional(self):
+        """Test that quantity is optional at form level (formset handles all-or-nothing validation)."""
         form = ReceiptItemForm(data={
             'product_name': 'Apple',
             'quantity': '',
             'unit_price': '1.50',
             'vat_amount': '0.00'
         })
-        assert not form.is_valid()
+        assert form.is_valid()
 
-    def test_receipt_item_form_requires_unit_price(self):
-        """Test that unit_price is required."""
+    def test_receipt_item_form_unit_price_optional(self):
+        """Test that unit_price is optional at form level (formset handles all-or-nothing validation)."""
         form = ReceiptItemForm(data={
             'product_name': 'Apple',
             'quantity': '5.00',
             'unit_price': '',
             'vat_amount': '0.00'
         })
-        assert not form.is_valid()
+        assert form.is_valid()
 
     def test_receipt_item_form_vat_optional(self):
         """Test that vat_amount is optional."""
