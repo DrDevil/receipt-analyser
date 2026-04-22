@@ -144,7 +144,11 @@ class TestAddReceiptView:
         client.force_login(user)
         data = {
             'total_sum': '99.99',
-            'description': 'Grocery store'
+            'description': 'Grocery store',
+            'items-TOTAL_FORMS': '0',
+            'items-INITIAL_FORMS': '0',
+            'items-MIN_NUM_FORMS': '0',
+            'items-MAX_NUM_FORMS': '1000',
         }
         response = client.post(reverse('add_receipt'), data)
         
@@ -174,6 +178,7 @@ class TestAddReceiptView:
         }
         response = client.post(reverse('add_receipt'), data)
         
+        assert response.status_code == 302
         receipt = Receipt.objects.first()
         assert receipt.items.count() == 1
         item = receipt.items.first()
@@ -187,7 +192,11 @@ class TestAddReceiptView:
         client.force_login(user)
         data = {
             'total_sum': '75.00',
-            'description': 'Test'
+            'description': 'Test',
+            'items-TOTAL_FORMS': '0',
+            'items-INITIAL_FORMS': '0',
+            'items-MIN_NUM_FORMS': '0',
+            'items-MAX_NUM_FORMS': '1000',
         }
         response = client.post(reverse('add_receipt'), data, follow=False)
         
