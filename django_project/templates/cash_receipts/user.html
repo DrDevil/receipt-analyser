@@ -6,26 +6,43 @@
 <h1>Receipts by {{ profile_user.username }}</h1>
 
 {% if page_obj %}
-    <table>
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Date</th>
-                <th>Total</th>
-                <th>Description</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for receipt in page_obj %}
-            <tr>
-                <td>#{{ receipt.id }}</td>
-                <td>{{ receipt.date }}</td>
-                <td>${{ receipt.total_sum }}</td>
-                <td>{{ receipt.description|default:"-" }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    {% for receipt in page_obj %}
+        <div class="receipt">
+            <h3>Receipt #{{ receipt.id }}</h3>
+            <p><strong>Date:</strong> {{ receipt.date }}</p>
+            {% if receipt.description %}
+                <p><strong>Description:</strong> {{ receipt.description }}</p>
+            {% endif %}
+            
+            {% if receipt.items.all %}
+                <table class="items-table">
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Quantity</th>
+                            <th>Unit Price</th>
+                            <th>Total Price</th>
+                            <th>VAT</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in receipt.items.all %}
+                        <tr>
+                            <td>{{ item.product_name }}</td>
+                            <td>{{ item.quantity }}</td>
+                            <td>${{ item.unit_price }}</td>
+                            <td>${{ item.total_price }}</td>
+                            <td>${{ item.vat_amount }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% endif %}
+            
+            <p><strong>Total Amount:</strong> ${{ receipt.total_sum }}</p>
+            <hr>
+        </div>
+    {% endfor %}
 
     <div class="pagination">
         {% if page_obj.has_previous %}

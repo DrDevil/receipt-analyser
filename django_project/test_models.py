@@ -35,6 +35,7 @@ class ReceiptItemFactory(factory_django.DjangoModelFactory):
     product_name = 'Test Product'
     quantity = Decimal('1.00')
     unit_price = Decimal('50.00')
+    vat_amount = Decimal('5.00')
 
 
 @pytest.mark.django_db

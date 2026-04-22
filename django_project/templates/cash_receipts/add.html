@@ -5,7 +5,7 @@
 {% block content %}
 <h1>Add New Receipt</h1>
 
-<form method="post">
+<form method="post" id="receipt-form">
     {% csrf_token %}
     
     <div class="form-group">
@@ -33,21 +33,149 @@
     </div>
 
     <fieldset>
-        <legend>Line Item (optional)</legend>
-        <div class="form-group">
-            <label for="product_name">Product Name:</label>
-            <input type="text" name="product_name" id="product_name">
+        <legend>Line Items</legend>
+        <div id="items-container">
+            {{ formset.management_form }}
+            <table id="items-table">
+                <thead>
+                    <tr>
+                        <th>Product Name</th>
+                        <th>Quantity</th>
+                        <th>Unit Price</th>
+                        <th>VAT Amount</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="formset-body">
+                    {% for form in formset %}
+                        <tr class="item-row" data-form-index="{{ forloop.counter0 }}">
+                            <td>{{ form.product_name }}</td>
+                            <td>{{ form.quantity }}</td>
+                            <td>{{ form.unit_price }}</td>
+                            <td>{{ form.vat_amount }}</td>
+                            <td>
+                                <button type="button" class="remove-row-btn" onclick="removeRow(this)">Remove</button>
+                            </td>
+                        </tr>
+                        {% if form.non_field_errors %}
+                            <tr><td colspan="5"><ul class="errors">{{ form.non_field_errors }}</ul></td></tr>
+                        {% endif %}
+                    {% endfor %}
+                    <tr class="item-row" data-empty-form style="display:none">
+                        <td>{{ formset.empty_form.product_name }}</td>
+                        <td>{{ formset.empty_form.quantity }}</td>
+                        <td>{{ formset.empty_form.unit_price }}</td>
+                        <td>{{ formset.empty_form.vat_amount }}</td>
+                        <td>
+                            <button type="button" class="remove-row-btn" onclick="removeRow(this)">Remove</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
-        <div class="form-group">
-            <label for="quantity">Quantity:</label>
-            <input type="number" name="quantity" id="quantity" step="0.01">
-        </div>
-        <div class="form-group">
-            <label for="unit_price">Unit Price:</label>
-            <input type="number" name="unit_price" id="unit_price" step="0.01">
-        </div>
+        <button type="button" onclick="addRow()" class="add-row-btn">Add Another Item</button>
+        <p style="font-size: 0.9em; color: #666;">
+            Leave all fields blank in a row to skip it. All fields in a row must be filled or all must be empty.
+        </p>
     </fieldset>
 
     <button type="submit">Save Receipt</button>
 </form>
+
+<script>
+function getFormCount() {
+    return parseInt(document.getElementById('id_items-TOTAL_FORMS').value);
+}
+
+function setFormCount(count) {
+    document.getElementById('id_items-TOTAL_FORMS').value = count;
+}
+
+function addRow() {
+    const formCount = getFormCount();
+    const formBody = document.getElementById('formset-body');
+    const emptyForm = document.querySelector('[data-empty-form]');
+    
+    if (!emptyForm) {
+        console.error('Empty form template not found');
+        return;
+    }
+    
+    // Clone the empty form
+    const newForm = emptyForm.cloneNode(true);
+    newForm.removeAttribute('data-empty-form');
+    newForm.removeAttribute('style');
+    newForm.setAttribute('data-form-index', formCount);
+    
+    // Update form field names
+    newForm.querySelectorAll('input, select, textarea').forEach(field => {
+        const name = field.getAttribute('name');
+        if (name) {
+            field.setAttribute('name', name.replace('-__prefix__-', '-' + formCount + '-'));
+        }
+        const id = field.getAttribute('id');
+        if (id) {
+            field.setAttribute('id', id.replace('__prefix__', formCount));
+        }
+    });
+    
+    // Update label names
+    newForm.querySelectorAll('label').forEach(label => {
+        const forAttr = label.getAttribute('for');
+        if (forAttr) {
+            label.setAttribute('for', forAttr.replace('__prefix__', formCount));
+        }
+    });
+    
+    formBody.appendChild(newForm);
+    setFormCount(formCount + 1);
+}
+
+function removeRow(button) {
+    const row = button.closest('.item-row');
+    row.remove();
+    updateFormCount();
+}
+
+function updateFormCount() {
+    const rows = document.querySelectorAll('[data-form-index]');
+    let maxIndex = -1;
+    rows.forEach(row => {
+        const idx = parseInt(row.getAttribute('data-form-index'));
+        if (idx > maxIndex) maxIndex = idx;
+    });
+    document.getElementById('id_items-TOTAL_FORMS').value = maxIndex + 1;
+}
+</script>
+
+<style>
+.remove-row-btn, .add-row-btn {
+    padding: 5px 10px;
+    font-size: 0.9em;
+    cursor: pointer;
+}
+
+.remove-row-btn {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 4px;
+}
+
+.remove-row-btn:hover {
+    background-color: #c82333;
+}
+
+.add-row-btn {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    margin-top: 10px;
+}
+
+.add-row-btn:hover {
+    background-color: #218838;
+}
+</style>
 {% endblock %}
