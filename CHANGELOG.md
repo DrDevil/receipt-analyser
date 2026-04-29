@@ -55,12 +55,6 @@ Added comprehensive test suite (61 tests) and complete documentation (Google-sty
   - Fixture documentation
   - Code quality standards
 
-- `PROJECT_COMPLETION_SUMMARY.md` - Project status overview
-  - What was added
-  - Key improvements
-  - Test coverage summary
-  - Readiness assessment
-
 - `QUICK_START_GUIDE.md` - Developer quick reference
   - Installation steps
   - Key URLs
@@ -247,18 +241,17 @@ Same as project license (check LICENSE file)
 
 ---
 
-## Summary
+## [2026-04-29] - Docs: Updated TESTING_AND_DOCUMENTATION.md to reflect current test suite
 
-The Receipt Analyzer project is now **production-ready** with:
-- ✓ 61 comprehensive tests with 100% pass rate
-- ✓ Google-style docstrings on all code
-- ✓ Full Django admin interface configured
-- ✓ Multiple developer guides and documentation
-- ✓ Test fixtures and factory setup for future tests
-- ✓ All core bugs fixed
+- Corrected test counts: 88 total (was 61); added missing test_admin.py (17 tests); fixed per-file counts for test_forms.py (28, was 8) and test_views.py (32, was 18), test_models.py (11, was 35)
+- Added TestAddReceiptFormsetEdgeCases class (5 tests) to views section
+- Added all TestSignupForm tests (11, was missing most)
+- Updated forms section: added vat_amount field, create_receipt_item_formset() factory, corrected "all optional at form level" note
+- Updated views section: added _validate_and_clean_formset() helper
+- Updated models section: added vat_amount to ReceiptItem attributes
+- Updated Code Quality Summary table with accurate counts and coverage
 
-The project is ready for:
-- Team development
-- CI/CD integration
-- Feature expansion
-- Production deployment
+## [2026-04-29] - Docs: Updated PROJECT_STATE.md and CLAUDE.md to reflect current codebase
+
+- Updated PROJECT_STATE.md: accurate file structure, all model fields (vat_amount, created_at, updated_at), forms, views, admin, URL table, test suite overview, 99% coverage summary
+- Updated CLAUDE.md Architecture section: added vat_amount and timestamp fields to model descriptions, updated Forms description to mention formset factory, corrected admin note (both models are registered), added note on test file locations
